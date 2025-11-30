@@ -1,4 +1,4 @@
-# Rolbal Unified App (Streamlit)
+# Lawn Bowls Local Tournament App (Streamlit)
 
 ## Run
 ```

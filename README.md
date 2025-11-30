@@ -1,69 +1,38 @@
-# Lawn Bowls Local Tournament App (Streamlit)
+# Lawn Bowls Local Tournament App
 
-## Run
-```
-pip install -r requirements.txt
-streamlit run app.py
-```
+A lightweight tournament management system built for local **lawn bowls** events. The application handles player registration, match scheduling, scoring, standings, and leaderboard presentation in a clean, easy-to-use interface. It was designed to streamline administration for small competitions without needing complex tournament software.
 
-## Features
-- Players registry, schedule gen (Swiss / Round-robin, no-repeat), rink rotation
-- Mirror score entry (B mirrors A), round locks & audit log
-- Rules/tiebreakers (win/draw/loss points, optional bonus on big win)
-- Standings per section & combined, live leaderboard view
-- Import players from Excel (Punte Sek 1/2) and export workbook
-- JSON persistence in `./data/event.json`
+## What It Does
 
-## Hosted Login (Supabase Auth)
+- Registers players and organizes events
+- Generates schedules using Swiss or Round-Robin formats with no repeat matchups
+- Manages rink rotation
+- Allows match score entry with mirrored scoring support
+- Applies standard tiebreak rules (win/draw/loss points and optional bonus rules)
+- Displays real-time standings and leaderboards
+- Imports and exports players and results via Excel files
 
-You can enable a simple hosted login (free tier) using Supabase Auth. When configured, users must sign in (email/password or email code), and each signed-in user saves data to a separate file to avoid clashes when multiple users share the same running app instance.
+The app is built using **Python** and **Streamlit**, optimized for rapid deployment in a local event context.
 
-Setup:
-- Create a Supabase project (free tier is fine).
-- In Authentication settings, enable Email/Password and/or Magic Links.
-- In Streamlit, add secrets in `.streamlit/secrets.toml`:
+## Development & Support
 
-```
-[supabase]
-url = "https://YOUR-PROJECT.supabase.co"
-anon_key = "YOUR_ANON_PUBLIC_KEY"
-```
+This project is maintained on an **as-needed** basis. It is not under continuous active development. Feature additions and updates are implemented only when requested by local tournament organizers, and new builds are deployed specifically for scheduled events.
 
-Run as usual. The app will show a Sign In screen. If Supabase is not configured, the app runs in guest mode and uses `data/event.json`.
+There is no public hosted version and no guaranteed update cycle.
 
-## Online Storage (no local JSON)
+## Status
 
-When Supabase Auth is configured, the app stores all state online in your Supabase Postgres DB (per-user row). Create the table and policies in the SQL editor:
+The app is stable and fully functional for its intended purpose but **not in active development**. Future updates are performed **on demand only**.
 
-```
--- Base table (single event per user works too)
-create table if not exists public.events (
-  user_id uuid not null,
-  event_id uuid,
-  name text default 'My Event' not null,
-  state jsonb not null default '{}'::jsonb,
-  updated_at timestamptz not null default now(),
-  primary key (user_id, event_id)
-);
+## Building / Running
 
--- If migrating from the earlier single-row schema:
---   alter table public.events add column if not exists event_id uuid;
---   alter table public.events add column if not exists name text default 'My Event' not null;
---   update public.events set event_id = gen_random_uuid() where event_id is null;
---   drop index if exists events_pkey; -- if it exists as a standalone index
---   alter table public.events drop constraint if exists events_pkey;
---   alter table public.events add primary key (user_id, event_id);
+Anyone who wishes to run it locally may install dependencies and start the application:
 
-alter table public.events enable row level security;
-create policy "read own" on public.events for select using (auth.uid() = user_id);
-create policy "insert own" on public.events for insert with check (auth.uid() = user_id);
-create policy "update own" on public.events for update using (auth.uid() = user_id);
-```
 
-No service key is needed; the app uses the anon key with the signed-in user session so RLS restricts access.
+## Technology
 
-## Multi‑Event + Sync
-- After sign-in, pick an event from the sidebar. Create, rename, duplicate, or delete events. Each event is a row in `public.events` keyed by `(user_id, event_id)`.
-- Toggle “Auto-refresh every 5s” in the sidebar or use Tools → Reload to pull updates made from another device.
+- **Python**
+- **Streamlit** for UI
+- Excel import/export support
+- JSON or database storage options depending on deployment needs
 
-This app combines the separate mini-apps into one UI while keeping the data format compatible.
